@@ -5,9 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>아크 레이더스 퀘스트 체크리스트</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 30px; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f4f9; 
+            color: #333; 
+            margin: 0; 
+            padding: 0; /* body의 padding 제거 */
+        }
+        
+        /* ---------------------------------------------------- */
+        /* ✨ 고정 헤더 섹션 CSS */
+        /* ---------------------------------------------------- */
+        #fixed-summary-wrapper { 
+            position: fixed; /* 화면 상단에 고정 */
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            z-index: 1000; /* 다른 콘텐츠 위에 표시 */
+            background-color: #f4f4f9; /* body 배경색과 동일 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 구분선 역할 */
+            padding-bottom: 20px; /* 아래쪽 여백 추가 */
+        }
+        
+        .overall-summary { 
+            /* 내부 콘텐츠를 중앙에 정렬하고 최대 너비 유지 */
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 30px 0 30px;
+            background-color: #e6f7ff;
+            border-radius: 0 0 8px 8px; /* 아래쪽 모서리만 둥글게 */
+            border: 1px solid #b3e0ff;
+            border-top: none;
+        }
+
+        /* ---------------------------------------------------- */
+        /* 메인 콘텐츠 컨테이너 CSS */
+        /* ---------------------------------------------------- */
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background-color: #fff; 
+            padding: 30px; 
+            /* 고정된 헤더 높이만큼 콘텐츠 시작 위치를 아래로 밀어냄 (약 200px) */
+            padding-top: 200px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        }
+
+        /* 기타 스타일 (이전과 동일) */
+        h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 30px; margin-top: 0; }
         h2 { color: #333; margin-top: 25px; border-left: 5px solid #0056b3; padding-left: 10px; }
         .progress-bar { background-color: #e0e0e0; border-radius: 5px; overflow: hidden; height: 25px; margin-bottom: 15px; }
         .progress-fill { background-color: #007bff; height: 100%; text-align: right; line-height: 25px; color: white; transition: width 0.3s; font-weight: bold; padding-right: 5px; box-sizing: border-box; }
@@ -22,29 +68,29 @@
         .objective-list li { padding: 5px 0; border-top: 1px dashed #eee; display: flex; align-items: center; }
         .objective-list li:first-child { border-top: none; }
         .objective-list input[type="checkbox"] { margin-right: 10px; transform: scale(1.2); }
-        .overall-summary { margin-top: 30px; padding: 20px; background-color: #e6f7ff; border-radius: 8px; border: 1px solid #b3e0ff; }
         .npc-section { margin-top: 30px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>아크 레이더스 퀘스트 달성률</h1>
-
+<div id="fixed-summary-wrapper">
     <div class="overall-summary">
+        <h1>아크 레이더스 퀘스트 달성률</h1>
         <h2>✨ 전체 퀘스트 진행률 (<span id="overall-percent-text">0.00%</span>)</h2>
         <div class="progress-bar">
             <div class="progress-fill" id="overall-progress-fill" style="width: 0;"></div>
         </div>
         <p>총 퀘스트 <span id="overall-total-quests">0</span>개 중 <span id="overall-completed-quests">0</span>개 완료</p>
     </div>
+</div>
 
+<div class="container">
     <div id="checklist-container">
         </div>
 </div>
 
 <script>
-    // 퀘스트 데이터 (원본 데이터 기반으로 간결화)
+    // 퀘스트 데이터 (이전과 동일)
     const questData = [
         { name: "잔해 수거", npc: "샤니", objectives: ["맵에서 전리품 카테고리 아이콘이 있는 지역 들르기", "컨테이너 3개 노획하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
         { name: "더 맑은 하늘", npc: "샤니", objectives: ["아크 적 3개 파괴하기", "샤니에게 아크 합금 3개 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
@@ -130,7 +176,7 @@
         return acc;
     }, {});
 
-    // 체크 상태를 로드하고 저장하는 함수
+    // 체크 상태를 로드하고 저장하는 함수 (로컬 스토리지 사용)
     const loadProgress = () => {
         try {
             const savedData = localStorage.getItem(STORAGE_KEY);
@@ -155,11 +201,10 @@
     const updateProgress = () => {
         let totalAllObjectives = 0;
         let totalCheckedAllObjectives = 0;
-        let overallCompletedQuests = 0;
         const totalQuests = questData.length;
         const npcTotals = {};
 
-        // 1. NPC별 및 전체 목표 수 초기화
+        // 1. NPC별 및 전체 목표 수 초기화 (재계산)
         Object.keys(groupedData).forEach(npc => {
             npcTotals[npc] = { totalObjectives: 0, checkedObjectives: 0, totalQuests: groupedData[npc].length, completedQuests: 0 };
         });
@@ -173,7 +218,6 @@
                 const checkboxId = `${quest.id}-${objIndex}`;
                 const checkbox = document.getElementById(checkboxId);
                 
-                // 체크박스가 존재하고 체크되어 있으면
                 if (checkbox && checkbox.checked) {
                     checkedObjectives++;
                 }
@@ -222,10 +266,6 @@
             if (npcCompletedText) {
                 npcCompletedText.textContent = npcTotal.completedQuests;
             }
-            
-            if (npcTotal.completedQuests === npcTotal.totalQuests) {
-                overallCompletedQuests += npcTotal.totalQuests;
-            }
         });
 
         // 4. 전체 진행률 업데이트
@@ -265,10 +305,20 @@
     const renderChecklists = () => {
         const container = document.getElementById('checklist-container');
         let html = '';
-
+        
+        // NPC별 초기 통계 계산
+        const preCalcTotals = questData.reduce((acc, quest) => {
+            if (!acc[quest.npc]) {
+                acc[quest.npc] = { totalObjectives: 0, totalQuests: 0 };
+            }
+            acc[quest.npc].totalObjectives += quest.objectives.length;
+            acc[quest.npc].totalQuests++;
+            return acc;
+        }, {});
+        
+        // 퀘스트 목록 렌더링
         Object.keys(groupedData).forEach(npc => {
             const quests = groupedData[npc];
-            const npcTotal = npcTotals[npc];
             
             // NPC 섹션 시작
             html += `<div class="npc-section">
@@ -316,22 +366,7 @@
     };
 
     // 페이지 로드 시 실행
-    document.addEventListener('DOMContentLoaded', () => {
-        // 초기 렌더링 전에 NPC별 통계를 먼저 계산
-        const preCalcTotals = questData.reduce((acc, quest) => {
-            if (!acc[quest.npc]) {
-                acc[quest.npc] = { totalObjectives: 0, totalQuests: 0 };
-            }
-            acc[quest.npc].totalObjectives += quest.objectives.length;
-            acc[quest.npc].totalQuests++;
-            return acc;
-        }, {});
-        
-        // renderChecklists 함수 내에서 재사용하기 위해 전역 객체로 설정
-        window.npcTotals = preCalcTotals; 
-        
-        renderChecklists();
-    });
+    document.addEventListener('DOMContentLoaded', renderChecklists);
 
 </script>
 
