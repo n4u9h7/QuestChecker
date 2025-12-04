@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아크 레이더스 퀘스트 체크리스트</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 30px; }
+        h2 { color: #333; margin-top: 25px; border-left: 5px solid #0056b3; padding-left: 10px; }
+        .progress-bar { background-color: #e0e0e0; border-radius: 5px; overflow: hidden; height: 25px; margin-bottom: 15px; }
+        .progress-fill { background-color: #007bff; height: 100%; text-align: right; line-height: 25px; color: white; transition: width 0.3s; font-weight: bold; padding-right: 5px; box-sizing: border-box; }
+        .npc-progress-bar { background-color: #d1e7ff; }
+        .npc-progress-fill { background-color: #0056b3; }
+        .quest-list { list-style: none; padding: 0; }
+        .quest-item { background-color: #f9f9f9; margin-bottom: 15px; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .quest-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; font-size: 1.1em; }
+        .quest-header a { color: #007bff; text-decoration: none; }
+        .quest-header a:hover { text-decoration: underline; }
+        .objective-list { list-style: none; padding: 0; margin-top: 5px; }
+        .objective-list li { padding: 5px 0; border-top: 1px dashed #eee; display: flex; align-items: center; }
+        .objective-list li:first-child { border-top: none; }
+        .objective-list input[type="checkbox"] { margin-right: 10px; transform: scale(1.2); }
+        .overall-summary { margin-top: 30px; padding: 20px; background-color: #e6f7ff; border-radius: 8px; border: 1px solid #b3e0ff; }
+        .npc-section { margin-top: 30px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>아크 레이더스 퀘스트 달성률</h1>
+
+    <div class="overall-summary">
+        <h2>✨ 전체 퀘스트 진행률 (<span id="overall-percent-text">0.00%</span>)</h2>
+        <div class="progress-bar">
+            <div class="progress-fill" id="overall-progress-fill" style="width: 0;"></div>
+        </div>
+        <p>총 퀘스트 <span id="overall-total-quests">0</span>개 중 <span id="overall-completed-quests">0</span>개 완료</p>
+    </div>
+
+    <div id="checklist-container">
+        </div>
+</div>
+
+<script>
+    // 퀘스트 데이터 (원본 데이터 기반으로 간결화)
+    const questData = [
+        { name: "잔해 수거", npc: "샤니", objectives: ["맵에서 전리품 카테고리 아이콘이 있는 지역 들르기", "컨테이너 3개 노획하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "더 맑은 하늘", npc: "샤니", objectives: ["아크 적 3개 파괴하기", "샤니에게 아크 합금 3개 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "쓰레기를 보물로", npc: "샤니", objectives: ["전선 6개 획득하기", "배터리 1개 획득하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "레이더망의 바깥", npc: "샤니", objectives: ["필드 창고 들르기", "필드 창고 지붕의 안테나 수리하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "지상에 발을 딛고", npc: "샤니", objectives: ["필드 창고 들르기", "필드 창고에 상자 운반하기", "보상을 수집하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "삼인조", npc: "샤니", objectives: ["와스프 파괴/드라이버 전달", "호넷 파괴/드라이버 전달", "스니치 파괴/드라이버 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "잠에 든 바론", npc: "샤니", objectives: ["바론 허물 노획하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "뒤섞인 신호", npc: "샤니", objectives: ["아크 서베이어 파괴하기", "서베이어 볼트 1개 획득하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "지형", npc: "샤니", objectives: ["장쑤 창고 도달", "운송 기록 찾기", "스캐너 찾기", "LIDAR 스캐너 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "잔해로 전락한", npc: "샤니", objectives: ["붕괴된 고속도로 촬영", "부서진 대지 이동/흔적 따라가기", "아크 머신 조사"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "흔적을 따라", npc: "샤니", objectives: ["황량한 공터 도달", "아크 머신 쓰러뜨린 흔적 찾기", "장식된 잔해 조사", "통신 장치 조사"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "그림자 밖으로", npc: "샤니", objectives: ["로켓티어 파괴하기", "로켓티어 드라이버 획득하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "상공의 감시자", npc: "샤니", objectives: ["댐 관제탑 스캐너 설치", "우주 기지 통신탑 스캐너 설치", "파묻힌 도시 간판 스캐너 설치"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "저 위에 있는 우리 존재", npc: "샤니", objectives: ["패턴 하우스 방문", "전원 스위치 누르기", "지붕에 안테나 설치"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "비밀 통신처", npc: "샤니", objectives: ["붉은 탑 도달", "사라진 배터리 찾기", "배터리 셀 설치", "전력 공급", "안테나 터미널 부팅"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "격전 속으로", npc: "샤니", objectives: ["리퍼 파괴하기", "리퍼 펄스 유닛 획득하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "전파, 사라지다", npc: "샤니", objectives: ["관제탑 A6 방문", "꼭대기에 도달", "관제탑 연결 재설정"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "냉동 저장소", npc: "샤니", objectives: ["J Kozma Ventures 컨테이너 찾기", "샤니에게 희귀한 책 전달하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        
+        { name: "안 좋은 예감", npc: "셀레스테", objectives: ["아무 아크 탐사기나 운반기 찾아 수색하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "뇌물로 기름칠", npc: "셀레스테", objectives: ["로켓 추진기 살펴보기", "파묻힌 도시 6층 봉쇄 구역 들르기", "댐 정수 처리장 잠긴 방 들르기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "정보 바로잡기", npc: "셀레스테", objectives: ["승리의 산등성이 도달하기", "오래된 EMP 함정 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "기억의 보존", npc: "셀레스테", objectives: ["개미탑 언덕 잔해 도달", "잃어버린 헬멧 찾기", "기념물에 헬멧 되돌려 놓기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "승리의 산등성이에 퍼지는 메아리", npc: "셀레스테", objectives: ["승리의 산등성이 도달하기", "아이바 소령의 패치 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "단결의 상징", npc: "셀레스테", objectives: ["개미탑 전초 기지 도달", "깃발 찾기", "붉은 호수 플랫폼에 깃발 게양"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "셀레스테의 일지", npc: "셀레스테", objectives: ["남쪽 늪 전초 기지 일지 회수", "북쪽 전초 기지 일지 회수", "셀레스테에게 일지 2개 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "비가 온 뒤에", npc: "셀레스테", objectives: ["홍수로 손상된 태양광 패널 찾기", "전선/배터리 사용해 패널 수리"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "균형 잡힌 포획", npc: "셀레스테", objectives: ["연구동 및 행정동 이동", "제1연구소 찾기", "농업 연구 프로젝트 흔적 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "버림받은 정원", npc: "셀레스테", objectives: ["수경재배 돔 단지 이동", "데이터 보관소 접근", "필드 창고 컴퓨터에 데이터 업로드"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "문제의 원인", npc: "셀레스테", objectives: ["연구동으로 이동하기", "'전망이 아주 좋은 방'에서 씨앗 금고 찾기", "실험용 씨앗 샘플 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "물 문제", npc: "셀레스테", objectives: ["홍수 대비 터널 찾기", "취수구 찾기", "물 샘플 가져오기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "오염의 근원", npc: "셀레스테", objectives: ["댐의 정수 처리 건물 도달", "늪 근처 홍수 배수로 입구 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "보급품 교체", npc: "셀레스테", objectives: ["우주 기지 아래 터널 찾기", "밸브를 찾아 돌리기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "정전", npc: "셀레스테", objectives: ["변전소 찾기", "사라진 엔지니어 흔적 찾기", "퓨즈 설치", "전력 복구하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "점멸하는 위협", npc: "셀레스테", objectives: ["발전기실 찾기", "발전기 수리", "통풍구 찾기", "전원 스위치로 전력 활성화"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "벌이다!", npc: "셀레스테", objectives: ["올리브 숲에 도달하기", "벌집 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "톨레도에 보내는 찬사", npc: "셀레스테", objectives: ["파워 로드 입수하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "부패 파헤치기", npc: "셀레스테", objectives: ["산타 마리아 주택가 찾기", "비밀 물품 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "전향", npc: "셀레스테", objectives: ["북쪽 도랑 탑으로 이동", "협박 메일 파일 찾고 업로드"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+
+        { name: "딱 맞는 도구", npc: "티안 웬", objectives: ["파이어볼 처치", "호넷 처치", "포탑 처치"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "해치 수리", npc: "티안 웬", objectives: ["유압 파이트 수리하기", "해치 열쇠 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "더 나은 활용법", npc: "티안 웬", objectives: ["보급품 드롭 요청하기", "보급품 드롭 노획하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "뒤에 남겨진 것들", npc: "티안 웬", objectives: ["주차 차고 지하 컨테이너 2개 조사", "남쪽 늪 전초기지 중요한 물건 찾기", "우주 기지 은신처 중요한 물건 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "부서진 기념물", npc: "티안 웬", objectives: ["성지에 도달하기", "나침반 찾기", "비디오 테이프 찾기", "오래된 야전 배식 찾기", "티안 웬에게 물건 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "죽음의 표식", npc: "티안 웬", objectives: ["Su Durante 창고 도달", "티안 웬의 비축물 검색", "단서 따라가기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "시장 조정", npc: "티안 웬", objectives: ["마라노역 은닉물 찾기", "은닉물 파괴하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "목표에 시선 고정", npc: "티안 웬", objectives: ["외딴 옥상 테라스 찾기", "전선 3개 사용해 패널 전선 교체"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "산업 스파이", npc: "티안 웬", objectives: ["무기 은닉처 찾기", "라이벌 은닉고에 부를레타 전달", "도청 장치 설치"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "예상치 못한 계획", npc: "티안 웬", objectives: ["그란디오소 아파트 도달", "아파트 옥상에서 비료 찾기", "피아차 로마 도달", "물 펌프 찾기", "티안 웬에게 물건 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "다시 지상으로", npc: "티안 웬", objectives: ["패턴 전초 기지 마킹", "흰색 조망탑 마킹", "도랑 탑 마킹", "벽화 건물 마킹"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "소령의 풋라커", npc: "티안 웬", objectives: ["아이바 소령의 유품 찾기", "유품을 티안 웬에게 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "장갑 수송차", npc: "티안 웬", objectives: ["체크포인트 도달", "장갑 순찰자 키카드 찾기", "교통 터널 도달", "뒷문 찾아 열기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "사진 촬영 및 부품 분해", npc: "티안 웬", objectives: ["로버 촬영", "서류 수색", "전자관 전달", "유량 조절기 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+
+        { name: "무사 통과", npc: "아폴로", objectives: ["아무 폭발 수류탄으로 아크 적 2기 처치"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "가는 말이 고와야", npc: "아폴로", objectives: ["파이어볼 버너로 아무 아크 적 처치하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "불꽃 튀는 대결", npc: "아폴로", objectives: ["트리거 또는 스냅 블래스트 수류탄으로 호넷 처치"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "첫 거점", npc: "아폴로", objectives: ["전망대 안정화 하기", "통신 터미널 켜기", "위성 접시 회전하기", "지붕 판 고정하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "따뜻한 쉼터", npc: "아폴로", objectives: ["고속도로 캠프 찾기", "생존자 흔적 찾기", "붉은 표식 따라가기", "무덤 조사하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "에스프레소", npc: "아폴로", objectives: ["에스프레소 머신 찾고 부품 획득", "아폴로에게 부품 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "도서관 건설", npc: "아폴로", objectives: ["도심에서 도서관 찾기", "로맨스 소설 1권 찾기", "탐정 소설 1권 찾기", "모험 소설 1권 찾기", "아폴로에게 책 3권 전달"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+
+        { name: "의사의 지시", npc: "랜스", objectives: ["주사기 1개 획득", "소독약 2개 획득", "우단담배풀 1개 획득", "질긴 천 1개 획득"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "의료 물자", npc: "랜스", objectives: ["우주 기지 검진실 컨테이너 2개 수색", "파묻힌 도시 병원 컨테이너 3개 수색", "댐 검진실 컨테이너 2개 수색"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "폐허에서 드러난 것", npc: "랜스", objectives: ["약국 안에서 ESR 분석기 찾기", "랜스에게 ESR 분석기 전달하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "과거의 처방전", npc: "랜스", objectives: ["우주 기지 출발동 방문", "검진실 찾기", "기록 찾기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "약사의 삶", npc: "랜스", objectives: ["아르부스토 파르마시아 찾기", "약사의 취미 기록", "약사의 가족 기록", "약사의 취향 기록", "약사의 기술 기록"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "신종 식물", npc: "랜스", objectives: ["바론 허물 근처에서 신종 식물 찾기", "랜스에게 독성 식물 전달하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+        { name: "내 형상대로", npc: "랜스", objectives: ["스텔라 몬티스로 배치", "3 안드로이드 찾아 검색하기"], link: "https://www.inven.co.kr/webzine/news/?news=310816" },
+    ];
+
+    const STORAGE_KEY = 'ark_raiders_quest_progress';
+
+    // 퀘스트 데이터를 NPC별로 그룹화
+    const groupedData = questData.reduce((acc, quest, index) => {
+        quest.id = `${quest.npc}-${index}`;
+        if (!acc[quest.npc]) {
+            acc[quest.npc] = [];
+        }
+        acc[quest.npc].push(quest);
+        return acc;
+    }, {});
+
+    // 체크 상태를 로드하고 저장하는 함수
+    const loadProgress = () => {
+        try {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            return savedData ? JSON.parse(savedData) : {};
+        } catch (e) {
+            console.error("Local storage load failed:", e);
+            return {};
+        }
+    };
+
+    const saveProgress = (progress) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        } catch (e) {
+            console.error("Local storage save failed:", e);
+        }
+    };
+
+    let questProgress = loadProgress();
+
+    // 진행률을 계산하고 UI를 업데이트하는 함수
+    const updateProgress = () => {
+        let totalAllObjectives = 0;
+        let totalCheckedAllObjectives = 0;
+        let overallCompletedQuests = 0;
+        const totalQuests = questData.length;
+        const npcTotals = {};
+
+        // 1. NPC별 및 전체 목표 수 초기화
+        Object.keys(groupedData).forEach(npc => {
+            npcTotals[npc] = { totalObjectives: 0, checkedObjectives: 0, totalQuests: groupedData[npc].length, completedQuests: 0 };
+        });
+
+        // 2. 퀘스트별 진행률 계산 및 저장
+        questData.forEach(quest => {
+            let checkedObjectives = 0;
+            const totalObjectives = quest.objectives.length;
+
+            quest.objectives.forEach((obj, objIndex) => {
+                const checkboxId = `${quest.id}-${objIndex}`;
+                const checkbox = document.getElementById(checkboxId);
+                
+                // 체크박스가 존재하고 체크되어 있으면
+                if (checkbox && checkbox.checked) {
+                    checkedObjectives++;
+                }
+            });
+
+            const questPercent = totalObjectives > 0 ? (checkedObjectives / totalObjectives) * 100 : 0;
+            const isCompleted = checkedObjectives === totalObjectives && totalObjectives > 0;
+            
+            // UI 업데이트 (퀘스트별)
+            const questProgressFill = document.getElementById(`progress-fill-${quest.id}`);
+            const questPercentText = document.getElementById(`percent-text-${quest.id}`);
+
+            if (questProgressFill) {
+                questProgressFill.style.width = `${questPercent.toFixed(2)}%`;
+            }
+            if (questPercentText) {
+                questPercentText.textContent = `${questPercent.toFixed(2)}%`;
+            }
+
+            // NPC 및 전체 합계 업데이트
+            npcTotals[quest.npc].totalObjectives += totalObjectives;
+            npcTotals[quest.npc].checkedObjectives += checkedObjectives;
+            if (isCompleted) {
+                npcTotals[quest.npc].completedQuests++;
+            }
+
+            totalAllObjectives += totalObjectives;
+            totalCheckedAllObjectives += checkedObjectives;
+        });
+        
+        // 3. NPC별 진행률 업데이트
+        Object.keys(npcTotals).forEach(npc => {
+            const npcTotal = npcTotals[npc];
+            const npcPercent = npcTotal.totalObjectives > 0 ? (npcTotal.checkedObjectives / npcTotal.totalObjectives) * 100 : 0;
+            
+            const npcProgressFill = document.getElementById(`npc-progress-fill-${npc}`);
+            const npcPercentText = document.getElementById(`npc-percent-text-${npc}`);
+            const npcCompletedText = document.getElementById(`npc-completed-quests-${npc}`);
+
+            if (npcProgressFill) {
+                npcProgressFill.style.width = `${npcPercent.toFixed(2)}%`;
+            }
+            if (npcPercentText) {
+                npcPercentText.textContent = `${npcPercent.toFixed(2)}%`;
+            }
+            if (npcCompletedText) {
+                npcCompletedText.textContent = npcTotal.completedQuests;
+            }
+            
+            if (npcTotal.completedQuests === npcTotal.totalQuests) {
+                overallCompletedQuests += npcTotal.totalQuests;
+            }
+        });
+
+        // 4. 전체 진행률 업데이트
+        const overallPercent = totalAllObjectives > 0 ? (totalCheckedAllObjectives / totalAllObjectives) * 100 : 0;
+
+        document.getElementById('overall-progress-fill').style.width = `${overallPercent.toFixed(2)}%`;
+        document.getElementById('overall-percent-text').textContent = `${overallPercent.toFixed(2)}%`;
+
+        const totalQuestsCompletedCount = questData.filter(quest => {
+            const total = quest.objectives.length;
+            let checked = 0;
+            quest.objectives.forEach((obj, objIndex) => {
+                const checkbox = document.getElementById(`${quest.id}-${objIndex}`);
+                if (checkbox && checkbox.checked) checked++;
+            });
+            return total > 0 && checked === total;
+        }).length;
+
+        document.getElementById('overall-total-quests').textContent = totalQuests;
+        document.getElementById('overall-completed-quests').textContent = totalQuestsCompletedCount;
+        
+        // 5. 현재 체크 상태 저장
+        const currentProgress = {};
+        questData.forEach(quest => {
+            quest.objectives.forEach((obj, objIndex) => {
+                const checkboxId = `${quest.id}-${objIndex}`;
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    currentProgress[checkboxId] = checkbox.checked;
+                }
+            });
+        });
+        saveProgress(currentProgress);
+    };
+
+    // 체크리스트를 HTML로 렌더링하는 함수
+    const renderChecklists = () => {
+        const container = document.getElementById('checklist-container');
+        let html = '';
+
+        Object.keys(groupedData).forEach(npc => {
+            const quests = groupedData[npc];
+            const npcTotal = npcTotals[npc];
+            
+            // NPC 섹션 시작
+            html += `<div class="npc-section">
+                <h2>👤 ${npc} 퀘스트 진행률 (<span id="npc-percent-text-${npc}">0.00%</span>)</h2>
+                <div class="progress-bar npc-progress-bar">
+                    <div class="progress-fill npc-progress-fill" id="npc-progress-fill-${npc}" style="width: 0;"></div>
+                </div>
+                <p>총 퀘스트 ${quests.length}개 중 <span id="npc-completed-quests-${npc}">0</span>개 완료</p>
+
+                <ul class="quest-list">`;
+            
+            // 퀘스트 목록
+            quests.forEach(quest => {
+                html += `<li class="quest-item">
+                    <div class="quest-header">
+                        <a href="${quest.link}" target="_blank">🔗 ${quest.name}</a>
+                        <div>
+                            <span id="percent-text-${quest.id}">0.00%</span>
+                            <div class="progress-bar" style="width: 100px; display: inline-block; margin-left: 10px; height: 15px;">
+                                <div class="progress-fill" id="progress-fill-${quest.id}" style="width: 0; height: 15px; line-height: 15px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="objective-list">`;
+
+                // 목표 목록 (체크박스)
+                quest.objectives.forEach((obj, objIndex) => {
+                    const checkboxId = `${quest.id}-${objIndex}`;
+                    const isChecked = questProgress[checkboxId] || false;
+                    
+                    html += `<li>
+                        <input type="checkbox" id="${checkboxId}" ${isChecked ? 'checked' : ''} onchange="updateProgress()">
+                        <label for="${checkboxId}">${obj}</label>
+                    </li>`;
+                });
+
+                html += `</ul></li>`;
+            });
+            
+            html += `</ul></div>`;
+        });
+        
+        container.innerHTML = html;
+        updateProgress(); // 초기 로드 후 진행률 업데이트
+    };
+
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', () => {
+        // 초기 렌더링 전에 NPC별 통계를 먼저 계산
+        const preCalcTotals = questData.reduce((acc, quest) => {
+            if (!acc[quest.npc]) {
+                acc[quest.npc] = { totalObjectives: 0, totalQuests: 0 };
+            }
+            acc[quest.npc].totalObjectives += quest.objectives.length;
+            acc[quest.npc].totalQuests++;
+            return acc;
+        }, {});
+        
+        // renderChecklists 함수 내에서 재사용하기 위해 전역 객체로 설정
+        window.npcTotals = preCalcTotals; 
+        
+        renderChecklists();
+    });
+
+</script>
+
+</body>
+</html>
