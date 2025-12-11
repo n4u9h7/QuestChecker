@@ -3,185 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARC RAIDERS | 퀘스트 체크리스트</title>
+    <title>아크 레이더스 퀘스트 체크리스트 (공략 링크 포함)</title>
     <style>
-        /* 폰트 임포트: Orbitron (헤더/강조), Rajdhani (본문) */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght+500;700&display=swap');
-
-        /* 아이템 페이지에서 가져온 스타일 변수 (Color Palette) */
-        :root {
-            --bg-ivory: #f2ede4; /* 배경색 */
-            --sidebar-ivory: #e6e0d4; /* 서브/강조 배경 */
-            --text-main: #3a352a; /* 주 텍스트 */
-            --border-tan: #dcd3c1; /* 테두리색 */
-            --point-blue: #45a29e; /* 주요 포인트 컬러 (진행/성공) */
-            --point-pink: #d33f6a; /* 보조 포인트 컬러 (경고/리셋/링크) */
-            --font-header: 'Orbitron', sans-serif;
-            --font-body: 'Rajdhani', sans-serif;
-        }
-        
         body { 
-            font-family: var(--font-body); 
-            background-color: var(--bg-ivory); 
-            color: var(--text-main); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f4f9; 
+            color: #333; 
             margin: 0; 
             padding: 0;
-            line-height: 1.6;
         }
         
         /* ---------------------------------------------------- */
         /* ✨ 고정 헤더 섹션 CSS */
         /* ---------------------------------------------------- */
         #fixed-summary-wrapper { 
-            position: fixed; 
+            position: fixed; /* 화면 상단에 고정 */
             top: 0; 
             left: 0; 
             width: 100%; 
             z-index: 1000;
-            background-color: var(--bg-ivory);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #f4f4f9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             padding-bottom: 20px;
-            box-sizing: border-box; 
         }
         
         .overall-summary { 
             max-width: 1200px;
             margin: 0 auto;
-            /* 데스크톱: 상하 20px, 좌우 30px */
-            padding: 20px 30px 20px 30px; 
-            background-color: #fff; /* 흰색 박스로 변경하여 강조 */
+            padding: 20px 30px 0 30px;
+            background-color: #e6f7ff;
             border-radius: 0 0 8px 8px;
-            border: 1px solid var(--border-tan);
+            border: 1px solid #b3e0ff;
             border-top: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
-        
-        /* ---------------------------------------------------- */
-        /* 검색 및 필터 컨트롤 CSS */
-        /* ---------------------------------------------------- */
-        #filter-controls {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--sidebar-ivory); /* 연한 상아색 배경 */
-            border-radius: 8px;
-            border: 1px solid var(--border-tan);
-        }
-
-        /* ✨ 수정: 검색창과 토글 버튼 컨테이너 */
-        .search-and-toggle-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px; 
-        }
-
-        #quest-search {
-            flex-grow: 1; /* 검색창이 최대한 공간을 차지하도록 */
-            padding: 10px 15px;
-            border: 2px solid var(--border-tan);
-            border-radius: 5px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            font-family: var(--font-body);
-            transition: border-color 0.2s;
-        }
-        #quest-search:focus {
-            outline: none;
-            border-color: var(--point-blue);
-        }
-
-        /* ✨ 수정: 토글 버튼 스타일 */
-        #filter-toggle-button {
-            flex-shrink: 0;
-            padding: 10px 15px;
-            background-color: var(--point-blue);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-family: var(--font-body);
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        #filter-toggle-button:hover {
-            background-color: #388e8b;
-        }
-
-        #npc-filter-container {
-            /* JS에서 토글할 수 있도록 기본은 flex로 설정 */
-            display: flex; 
-            flex-wrap: wrap;
-            gap: 10px;
-            padding-top: 5px;
-        }
-
-        .npc-filter-item input[type="radio"] {
-            display: none; /* 기본 라디오 버튼 숨기기 */
-        }
-
-        .npc-filter-item label {
-            display: inline-block;
-            padding: 8px 15px;
-            background-color: #fff;
-            border: 2px solid var(--border-tan);
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: var(--font-body);
-            font-weight: 700;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-            color: var(--text-main);
-            white-space: nowrap; /* 필터 라벨이 줄바꿈되지 않도록 */
-        }
-
-        .npc-filter-item input[type="radio"]:checked + label {
-            background-color: var(--point-blue);
-            border-color: var(--point-blue);
-            color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .npc-filter-item label:hover {
-            background-color: var(--point-blue);
-            border-color: var(--point-blue);
-            color: white;
-            opacity: 0.8;
-        }
-
-        /* 모바일 최적화: 필터 사이즈 조정 */
-        @media (max-width: 600px) {
-            .overall-summary {
-                padding: 15px 15px 15px 15px; 
-                margin: 0 15px; 
-            }
-            #filter-controls {
-                padding: 10px;
-            }
-            #npc-filter-container {
-                gap: 5px; /* 필터 간격 줄이기 */
-            }
-            .npc-filter-item label {
-                padding: 6px 10px; /* 패딩 줄이기 */
-                font-size: 0.8rem; /* 폰트 사이즈 줄이기 */
-            }
-            
-            /* 모바일에서 버튼 크기 조정 */
-            #filter-toggle-button {
-                padding: 8px 10px;
-                font-size: 0.8rem;
-            }
-
-            /* 퀘스트 이름이 길 때 레이아웃 깨짐 방지: 폰트 축소 */
-            .quest-header .quest-name-link { 
-                /* ✨ 수정: 모바일 환경에서도 유동적인 폰트 크기 적용 */
-                font-size: clamp(0.95rem, 4vw, 1rem); 
-            }
-            .quest-header > div > span {
-                font-size: 0.8rem;
-            }
-            .progress-bar[style] {
-                width: 80px !important; /* 모바일에서 게이지 너비 축소 */
-            }
-        }
-
 
         /* ---------------------------------------------------- */
         /* 메인 콘텐츠 컨테이너 CSS */
@@ -191,188 +45,41 @@
             margin: 0 auto; 
             background-color: #fff; 
             padding: 30px; 
-            /* JavaScript가 #fixed-summary-wrapper의 높이를 읽어 padding-top을 설정합니다. */
-            padding-top: 300px; /* 초기 로딩 시 임시 값 (JS가 덮어씀) */
+            /* 고정된 헤더 높이만큼 콘텐츠 시작 위치를 아래로 밀어냄 (필수) */
+            padding-top: 200px; 
             border-radius: 10px; 
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
         }
 
         /* 기타 스타일 */
-        h1 { 
-            font-family: var(--font-header);
-            color: var(--text-main); 
-            border-bottom: 2px solid var(--border-tan); 
-            padding-bottom: 10px; 
-            margin-bottom: 20px; 
-            margin-top: 0; 
-            font-size: 1.8rem;
-            letter-spacing: 1px;
-        }
-        
-        h2 { 
-            font-family: var(--font-header);
-            color: var(--point-blue); 
-            margin-top: 15px; 
-            border-left: 5px solid var(--point-blue); 
-            padding-left: 10px; 
-            font-size: 1.3rem;
-            letter-spacing: 0.5px;
-        }
-
-        /* 진행률 바 */
-        .progress-bar { 
-            background-color: var(--border-tan); 
-            border-radius: 5px; 
-            overflow: hidden; 
-            height: 25px; 
-            margin-bottom: 15px; 
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-        .progress-fill { 
-            background-color: var(--point-blue); 
-            height: 100%; 
-            text-align: right; 
-            line-height: 25px; 
-            color: white; 
-            transition: width 0.3s; 
-            font-weight: bold; 
-            padding-right: 8px; 
-            box-sizing: border-box; 
-            font-family: var(--font-header);
-            font-size: 0.9rem;
-        }
-
-        /* NPC별 진행률 바 */
-        .npc-progress-bar { background-color: #fce1e8; } 
-        .npc-progress-fill { background-color: var(--point-pink); } 
-
-        /* 퀘스트 목록 */
+        h1 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; margin-bottom: 30px; margin-top: 0; }
+        h2 { color: #333; margin-top: 25px; border-left: 5px solid #0056b3; padding-left: 10px; }
+        .progress-bar { background-color: #e0e0e0; border-radius: 5px; overflow: hidden; height: 25px; margin-bottom: 15px; }
+        .progress-fill { background-color: #007bff; height: 100%; text-align: right; line-height: 25px; color: white; transition: width 0.3s; font-weight: bold; padding-right: 5px; box-sizing: border-box; }
+        .npc-progress-bar { background-color: #d1e7ff; }
+        .npc-progress-fill { background-color: #0056b3; }
         .quest-list { list-style: none; padding: 0; }
-        
-        .quest-item { 
-            background-color: #f9f9f9; 
-            margin-bottom: 10px; 
-            padding: 15px; 
-            border-radius: 10px; 
-            border: 1px solid var(--border-tan); 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: border-color 0.2s;
-        }
-        .quest-item:hover { border-color: var(--point-blue); }
-
-        .quest-header { 
-            display: flex; 
-            flex-wrap: wrap; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 10px; 
-            font-weight: bold; 
-            font-size: 1.1em; 
-            border-bottom: 1px dashed var(--border-tan);
-            padding-bottom: 8px;
-        }
-        
-        .quest-header .quest-name-and-icon {
-            display: flex;
-            align-items: center;
-            color: var(--point-pink); 
-            font-family: var(--font-header);
-            /* ✨ 수정: clamp()를 사용하여 화면 크기에 따라 폰트 크기 유동적으로 조절 */
-            font-size: clamp(1.1rem, 1.3vw, 1.3rem); 
-            flex-grow: 1;
-            margin-right: 15px; 
-        }
-
-        /* ✨ 수정: 게이지 컨테이너 (레이아웃 깨짐 방지 유지) */
-        .quest-header .progress-container {
-            display: flex;
-            align-items: center;
-            flex-shrink: 0; 
-        }
-        
-        /* 🔗 아이콘 스타일 */
-        .quest-header .quest-link-icon {
-            margin-right: 5px; 
-        }
-
-        /* 퀘스트 이름 하이퍼링크 스타일 */
-        .quest-header .quest-name-link { 
-            color: inherit; 
-            text-decoration: none; 
-        }
-
-        /* 호버 시 퀘스트 이름 텍스트에만 밑줄 적용 */
-        .quest-header .quest-name-link:hover { 
-            text-decoration: underline; 
-        }
-        
-        /* 퀘스트 내부 진행률 텍스트 */
-        .quest-header > div > span {
-            font-family: var(--font-header);
-            color: var(--point-blue);
-            font-size: 0.9rem;
-        }
-
-        .objective-list { list-style: none; padding: 0; margin-top: 10px; }
-        .objective-list li { 
-            /* ✨ 수정: 수직 패딩을 8px에서 5px로 줄여 항목 간격을 좁힘 */
-            padding: 5px 0; 
-            border-top: 1px dashed #eee; 
-            display: flex; 
-            align-items: center; 
-            font-size: 1rem;
-        }
+        .quest-item { background-color: #f9f9f9; margin-bottom: 15px; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .quest-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; font-size: 1.1em; }
+        .quest-header a { color: #007bff; text-decoration: none; }
+        .quest-header a:hover { text-decoration: underline; }
+        .objective-list { list-style: none; padding: 0; margin-top: 5px; }
+        .objective-list li { padding: 5px 0; border-top: 1px dashed #eee; display: flex; align-items: center; }
         .objective-list li:first-child { border-top: none; }
-        
-        /* 체크박스 스타일 */
-        .objective-list input[type="checkbox"] { 
-            margin-right: 15px; 
-            transform: scale(1.3);
-            accent-color: var(--point-blue); 
-            cursor: pointer;
-        }
-        .objective-list input[type="checkbox"]:checked + label {
-            text-decoration: line-through;
-            color: #8c8c8c;
-            opacity: 0.8;
-        }
-        
-        .npc-section { 
-            margin-top: 30px; 
-        }
-        
-        .container > #checklist-container > .npc-section:first-child { 
-            margin-top: 0; 
-        }
-        
-        /* NPC 섹션 제목 */
-        .overall-summary p, .npc-section p {
-            font-family: var(--font-body);
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
+        .objective-list input[type="checkbox"] { margin-right: 10px; transform: scale(1.2); }
+        .npc-section { margin-top: 30px; }
     </style>
 </head>
 <body>
 
 <div id="fixed-summary-wrapper">
     <div class="overall-summary">
-        <h1>ARC RAIDERS 퀘스트 달성률</h1>
-        
+        <h1>아크 레이더스 퀘스트 달성률</h1>
         <h2>✨ 전체 퀘스트 진행률 (<span id="overall-percent-text">0.00%</span>)</h2>
         <div class="progress-bar">
             <div class="progress-fill" id="overall-progress-fill" style="width: 0;"></div>
         </div>
         <p>총 퀘스트 <span id="overall-total-quests">0</span>개 중 <span id="overall-completed-quests">0</span>개 완료</p>
-
-        <div id="filter-controls">
-            <div class="search-and-toggle-container">
-                <input type="text" id="quest-search" placeholder="퀘스트 이름 또는 목표로 검색..." oninput="applyFilters()">
-                <button id="filter-toggle-button" onclick="toggleFilterVisibility()">NPC 필터 숨기기</button>
-            </div>
-            <div id="npc-filter-container">
-                </div>
-        </div>
     </div>
 </div>
 
@@ -382,10 +89,9 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'ark_raiders_quest_progress_v3'; 
-    const HEADER_GAP = 30; 
+    const STORAGE_KEY = 'ark_raiders_quest_progress_v2'; // 링크 추가로 버전 변경
 
-    // 퀘스트 데이터 (원본 유지)
+    // 퀘스트 데이터 (제공해주신 HTML 테이블에서 추출한 정확한 링크 적용)
     const questData = [
         { name: "잔해 수거", npc: "샤니", link: "https://www.inven.co.kr/board/arcraiders/6412/322", objectives: ["맵에서 전리품 카테고리 아이콘이 있는 지역 들르기", "컨테이너 3개 노획하기"] },
         { name: "더 맑은 하늘", npc: "샤니", link: "https://www.inven.co.kr/board/arcraiders/6412/339", objectives: ["아크 적 3개 파괴하기", "샤니에게 아크 합금 3개 전달"] },
@@ -464,13 +170,6 @@
         acc[quest.npc].push(quest);
         return acc;
     }, {});
-    
-    // 유니크한 NPC 목록 (All 포함)
-    const uniqueNpcs = ["All", ...new Set(questData.map(q => q.npc))].sort((a, b) => {
-        if (a === 'All') return -1; // 'All'을 가장 앞으로
-        if (b === 'All') return 1;
-        return a.localeCompare(b);
-    });
 
     // 체크 상태를 로드하고 저장하는 함수 (로컬 스토리지 사용)
     const loadProgress = () => {
@@ -493,121 +192,17 @@
 
     let questProgress = loadProgress();
 
-    // ----------------------------------------------------
-    // ✨ 헤더 높이 조정 함수 (공백 조정)
-    // ----------------------------------------------------
-    const adjustContainerPadding = () => {
-        const fixedHeader = document.getElementById('fixed-summary-wrapper');
-        const container = document.querySelector('.container');
-        if (fixedHeader && container) {
-            // 고정된 헤더의 현재 높이를 가져옵니다.
-            const headerHeight = fixedHeader.offsetHeight;
-            // container의 padding-top에 HEADER_GAP을 더해 적용합니다.
-            container.style.paddingTop = `${headerHeight + HEADER_GAP}px`;
-        }
-    };
-
-    // ----------------------------------------------------
-    // ✨ 필터 토글 기능 함수
-    // ----------------------------------------------------
-    const toggleFilterVisibility = () => {
-        const npcContainer = document.getElementById('npc-filter-container');
-        const button = document.getElementById('filter-toggle-button');
-        
-        // 'display: none'인지 확인 (CSS의 'flex' 상태와 비교)
-        if (npcContainer.style.display === 'none') {
-            npcContainer.style.display = 'flex';
-            button.textContent = 'NPC 필터 숨기기';
-        } else {
-            npcContainer.style.display = 'none';
-            button.textContent = 'NPC 필터 보기';
-        }
-        
-        // 헤더 높이가 변경되었으므로 패딩을 다시 조정합니다.
-        adjustContainerPadding();
-    };
-
-    // ----------------------------------------------------
-    // ✨ 필터링 및 검색 기능 함수
-    // ----------------------------------------------------
-    const renderNpcFilters = () => {
-        const container = document.getElementById('npc-filter-container');
-        let html = '';
-        
-        uniqueNpcs.forEach((npc, index) => {
-            const filterId = `npc-filter-${npc.replace(/[^a-zA-Z0-9]/g, '_')}`; 
-            const isChecked = index === 0 ? 'checked' : ''; // 'All'을 기본 선택
-            
-            html += `<div class="npc-filter-item">
-                <input type="radio" id="${filterId}" name="npc-filter-group" value="${npc}" ${isChecked} onchange="applyFilters()">
-                <label for="${filterId}">${npc}</label>
-            </div>`;
-        });
-        
-        container.innerHTML = html;
-    };
-
-    const applyFilters = () => {
-        const searchTerm = document.getElementById('quest-search').value.toLowerCase().trim();
-        const selectedNpc = document.querySelector('input[name="npc-filter-group"]:checked').value;
-
-        const npcSections = document.querySelectorAll('.npc-section');
-
-        npcSections.forEach(section => {
-            const npcName = section.dataset.npcName;
-            let npcSectionHasVisibleQuest = false;
-
-            // 1. NPC 필터 확인
-            const isNpcVisible = selectedNpc === 'All' || npcName === selectedNpc;
-
-            // 해당 NPC 섹션 내의 모든 퀘스트 아이템을 가져옴
-            const questItems = section.querySelectorAll('.quest-item');
-
-            questItems.forEach(item => {
-                const questName = item.dataset.questName.toLowerCase();
-                const objectivesText = item.dataset.objectivesText.toLowerCase();
-
-                // 2. 검색어 확인 (퀘스트 이름 또는 목표 텍스트에 포함되는지 확인)
-                const isSearchMatch = searchTerm === '' || 
-                                      questName.includes(searchTerm) ||
-                                      objectivesText.includes(searchTerm);
-                
-                // 최종적으로 퀘스트 아이템을 보여줄지 결정
-                if (isNpcVisible && isSearchMatch) {
-                    item.style.display = 'block';
-                    npcSectionHasVisibleQuest = true;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            // 3. 퀘스트가 하나라도 보이면 NPC 섹션을 표시하고, 아니면 숨김
-            if (npcSectionHasVisibleQuest && isNpcVisible) {
-                section.style.display = 'block';
-            } else {
-                section.style.display = 'none';
-            }
-        });
-        
-        // 필터 변경 시 헤더 높이가 미세하게 달라질 수 있으므로 다시 조정
-        adjustContainerPadding();
-    };
-    
-    // ----------------------------------------------------
-    // ✨ 진행률 업데이트 함수
-    // ----------------------------------------------------
+    // 진행률을 계산하고 UI를 업데이트하는 함수
     const updateProgress = () => {
         let totalAllObjectives = 0;
         let totalCheckedAllObjectives = 0;
         const totalQuests = questData.length;
         const npcTotals = {};
 
-        // 1. NPC별 초기화 및 데이터 수집
         Object.keys(groupedData).forEach(npc => {
             npcTotals[npc] = { totalObjectives: 0, checkedObjectives: 0, totalQuests: groupedData[npc].length, completedQuests: 0 };
         });
 
-        // 2. 퀘스트별 진행률 계산 및 업데이트
         questData.forEach(quest => {
             let checkedObjectives = 0;
             const totalObjectives = quest.objectives.length;
@@ -616,14 +211,11 @@
                 const checkboxId = `${quest.id}-${objIndex}`;
                 const checkbox = document.getElementById(checkboxId);
                 
-                if (checkbox) {
-                    questProgress[checkboxId] = checkbox.checked; 
-                    if (checkbox.checked) {
-                        checkedObjectives++;
-                    }
+                if (checkbox && checkbox.checked) {
+                    checkedObjectives++;
                 }
             });
-            
+
             const questPercent = totalObjectives > 0 ? (checkedObjectives / totalObjectives) * 100 : 0;
             const isCompleted = checkedObjectives === totalObjectives && totalObjectives > 0;
             
@@ -635,8 +227,7 @@
                 questProgressFill.style.width = `${questPercent.toFixed(2)}%`;
             }
             if (questPercentText) {
-                // 체크된 목표 수 / 전체 목표 수 (퍼센트)
-                questPercentText.textContent = `${checkedObjectives}/${totalObjectives} (${questPercent.toFixed(2)}%)`;
+                questPercentText.textContent = `${questPercent.toFixed(2)}%`;
             }
 
             // NPC 및 전체 합계 업데이트
@@ -650,7 +241,7 @@
             totalCheckedAllObjectives += checkedObjectives;
         });
         
-        // 3. NPC별 진행률 업데이트
+        // NPC별 진행률 업데이트
         Object.keys(npcTotals).forEach(npc => {
             const npcTotal = npcTotals[npc];
             const npcPercent = npcTotal.totalObjectives > 0 ? (npcTotal.checkedObjectives / npcTotal.totalObjectives) * 100 : 0;
@@ -670,8 +261,12 @@
             }
         });
 
-        // 4. 전체 진행률 업데이트
+        // 전체 진행률 업데이트
         const overallPercent = totalAllObjectives > 0 ? (totalCheckedAllObjectives / totalAllObjectives) * 100 : 0;
+
+        document.getElementById('overall-progress-fill').style.width = `${overallPercent.toFixed(2)}%`;
+        document.getElementById('overall-percent-text').textContent = `${overallPercent.toFixed(2)}%`;
+
         const totalQuestsCompletedCount = questData.filter(quest => {
             const total = quest.objectives.length;
             let checked = 0;
@@ -682,29 +277,44 @@
             return total > 0 && checked === total;
         }).length;
 
-
-        document.getElementById('overall-progress-fill').style.width = `${overallPercent.toFixed(2)}%`;
-        document.getElementById('overall-percent-text').textContent = `${overallPercent.toFixed(2)}%`;
         document.getElementById('overall-total-quests').textContent = totalQuests;
         document.getElementById('overall-completed-quests').textContent = totalQuestsCompletedCount;
         
-        // 5. 현재 체크 상태 저장
-        saveProgress(questProgress);
+        // 현재 체크 상태 저장
+        const currentProgress = {};
+        questData.forEach(quest => {
+            quest.objectives.forEach((obj, objIndex) => {
+                const checkboxId = `${quest.id}-${objIndex}`;
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    currentProgress[checkboxId] = checkbox.checked;
+                }
+            });
+        });
+        saveProgress(currentProgress);
     };
 
-    // ----------------------------------------------------
-    // 체크리스트를 HTML로 렌더링하는 함수 (data 속성 포함)
-    // ----------------------------------------------------
-    const renderChecklists = (data = groupedData) => {
+    // 체크리스트를 HTML로 렌더링하는 함수
+    const renderChecklists = () => {
         const container = document.getElementById('checklist-container');
         let html = '';
         
-        // NPC 그룹별로 섹션을 렌더링
+        const preCalcTotals = questData.reduce((acc, quest) => {
+            if (!acc[quest.npc]) {
+                acc[quest.npc] = { totalObjectives: 0, totalQuests: 0 };
+            }
+            acc[quest.npc].totalObjectives += quest.objectives.length;
+            acc[quest.npc].totalQuests++;
+            return acc;
+        }, {});
+        
+        window.npcTotals = preCalcTotals; 
+        
         Object.keys(groupedData).forEach(npc => {
             const quests = groupedData[npc];
             
-            // NPC 섹션 시작 (data-npc-name 속성 추가)
-            html += `<div class="npc-section" data-npc-name="${npc}">
+            // NPC 섹션 시작
+            html += `<div class="npc-section">
                 <h2>👤 ${npc} 퀘스트 진행률 (<span id="npc-percent-text-${npc}">0.00%</span>)</h2>
                 <div class="progress-bar npc-progress-bar">
                     <div class="progress-fill npc-progress-fill" id="npc-progress-fill-${npc}" style="width: 0;"></div>
@@ -715,17 +325,12 @@
             
             // 퀘스트 목록
             quests.forEach(quest => {
-                const objectivesText = quest.objectives.join(' | '); // 검색을 위한 목표 텍스트
                 
-                // 퀘스트 아이템 (data-quest-name, data-objectives-text 속성 추가)
-                html += `<li class="quest-item" data-quest-name="${quest.name}" data-objectives-text="${objectivesText}">
+                html += `<li class="quest-item">
                     <div class="quest-header">
-                        <div class="quest-name-and-icon">
-                            <span class="quest-link-icon">🔗</span>
-                            <a href="${quest.link}" target="_blank" class="quest-name-link">${quest.name}</a>
-                        </div>
-                        <div class="progress-container">
-                            <span id="percent-text-${quest.id}">0/0 (0.00%)</span>
+                        <a href="${quest.link}" target="_blank">🔗 ${quest.name}</a>
+                        <div>
+                            <span id="percent-text-${quest.id}">0.00%</span>
                             <div class="progress-bar" style="width: 100px; display: inline-block; margin-left: 10px; height: 15px;">
                                 <div class="progress-fill" id="progress-fill-${quest.id}" style="width: 0; height: 15px; line-height: 15px;"></div>
                             </div>
@@ -736,8 +341,7 @@
                 // 목표 목록 (체크박스)
                 quest.objectives.forEach((obj, objIndex) => {
                     const checkboxId = `${quest.id}-${objIndex}`;
-                    // 로드된 진행 상황을 반영
-                    const isChecked = questProgress[checkboxId] || false; 
+                    const isChecked = questProgress[checkboxId] || false;
                     
                     html += `<li>
                         <input type="checkbox" id="${checkboxId}" ${isChecked ? 'checked' : ''} onchange="updateProgress()">
@@ -755,28 +359,8 @@
         updateProgress();
     };
 
-    // ----------------------------------------------------
-    // 전역 함수로 노출 및 초기화
-    // ----------------------------------------------------
-    window.updateProgress = updateProgress;
-    window.applyFilters = applyFilters;
-    window.adjustContainerPadding = adjustContainerPadding; 
-    window.toggleFilterVisibility = toggleFilterVisibility; 
-
     // 페이지 로드 시 실행
-    document.addEventListener('DOMContentLoaded', () => {
-        // 1. 전체 목록을 렌더링
-        renderChecklists(groupedData);
-        // 2. NPC 필터 버튼을 렌더링
-        renderNpcFilters();
-        // 3. 필터 적용 (초기에는 'All'이 선택되어 모든 것이 표시됨)
-        applyFilters(); 
-        // 4. 고정 헤더 높이에 맞춰 콘텐츠 패딩 조정
-        adjustContainerPadding();
-    });
-    
-    // 브라우저 리사이즈 시 패딩 재조정 (높이가 변경될 수 있음)
-    window.addEventListener('resize', adjustContainerPadding);
+    document.addEventListener('DOMContentLoaded', renderChecklists);
 
 </script>
 
