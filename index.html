@@ -59,41 +59,13 @@
         /* ---------------------------------------------------- */
         /* 검색 및 필터 컨트롤 CSS */
         /* ---------------------------------------------------- */
-        #filter-controls {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--sidebar-ivory); /* 연한 상아색 배경 */
-            border-radius: 8px;
-            border: 1px solid var(--border-tan);
-        }
-
-        /* 검색창과 토글 버튼 컨테이너 */
-        .search-and-toggle-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px; 
-        }
-
-        #quest-search {
-            flex-grow: 1; /* 검색창이 최대한 공간을 차지하도록 */
+        
+        /* 💡 필터 섹션 전체를 제어하는 새로운 토글 버튼 */
+        #main-filter-toggle-button {
+            width: 100%;
             padding: 10px 15px;
-            border: 2px solid var(--border-tan);
-            border-radius: 5px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            font-family: var(--font-body);
-            transition: border-color 0.2s;
-        }
-        #quest-search:focus {
-            outline: none;
-            border-color: var(--point-blue);
-        }
-
-        /* 토글 버튼 스타일 */
-        #filter-toggle-button {
-            flex-shrink: 0;
-            padding: 10px 15px;
-            background-color: var(--point-blue);
+            margin-bottom: 10px; /* 버튼과 필터 박스 사이 간격 */
+            background-color: var(--point-pink); 
             color: white;
             border: none;
             border-radius: 5px;
@@ -101,9 +73,35 @@
             font-weight: 700;
             cursor: pointer;
             transition: background-color 0.2s;
+            box-sizing: border-box;
         }
-        #filter-toggle-button:hover {
-            background-color: #388e8b;
+        #main-filter-toggle-button:hover {
+            background-color: #b03257; /* Darker pink */
+        }
+
+        #filter-controls {
+            margin-top: 0; /* 버튼이 생겼으므로 위쪽 마진 제거 */
+            padding: 15px;
+            background-color: var(--sidebar-ivory); /* 연한 상아색 배경 */
+            border-radius: 8px;
+            border: 1px solid var(--border-tan);
+        }
+
+        /* 검색창 스타일 조정 (단독으로 전체 너비 사용) */
+        #quest-search {
+            width: 100%; 
+            padding: 10px 15px;
+            border: 2px solid var(--border-tan);
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: var(--font-body);
+            transition: border-color 0.2s;
+            margin-bottom: 15px; /* NPC 필터와의 간격 */
+        }
+        #quest-search:focus {
+            outline: none;
+            border-color: var(--point-blue);
         }
 
         /* NPC 필터 컨테이너 (한 줄 스크롤 적용) */
@@ -168,29 +166,25 @@
                 padding: 10px;
             }
             
-            /* ✨ 최종 수정: 타이틀 완전히 숨기기 */
+            /* 타이틀 완전히 숨기기 */
             h1 {
                 display: none; 
             }
 
-            /* 타이틀이 사라졌기 때문에 h2의 마진을 조정하여 공백을 줄일 수 있음 (선택 사항) */
             h2 {
                 margin-top: 10px;
             }
 
-            /* 검색창과 토글 버튼 세로로 쌓기 */
-            .search-and-toggle-container {
-                flex-direction: column; /* 세로로 배치 */
-            }
-            #quest-search {
-                width: 100%; /* 검색창 너비 100% */
-                flex-grow: 1;
-            }
-            /* 모바일에서 버튼 크기 조정 */
-            #filter-toggle-button {
-                width: 100%; /* 버튼 너비 100% */
+            /* 모바일 버튼 크기 조정 */
+            #main-filter-toggle-button {
                 padding: 8px 10px;
                 font-size: 0.8rem;
+                margin-bottom: 8px;
+            }
+
+            /* 검색창 모바일 스타일 */
+            #quest-search {
+                margin-bottom: 10px; /* 모바일 간격 조정 */
             }
 
             #npc-filter-container {
@@ -400,11 +394,11 @@
         </div>
         <p>총 퀘스트 <span id="overall-total-quests">0</span>개 중 <span id="overall-completed-quests">0</span>개 완료</p>
 
+        <button id="main-filter-toggle-button" onclick="toggleFilterSection()">검색 및 필터 숨기기</button> 
+
         <div id="filter-controls">
-            <div class="search-and-toggle-container">
-                <input type="text" id="quest-search" placeholder="퀘스트 이름 또는 목표로 검색..." oninput="applyFilters()">
-                <button id="filter-toggle-button" onclick="toggleFilterVisibility()">NPC 필터 숨기기</button>
-            </div>
+            <input type="text" id="quest-search" placeholder="퀘스트 이름 또는 목표로 검색..." oninput="applyFilters()">
+            
             <div id="npc-filter-container">
                 </div>
         </div>
@@ -541,26 +535,29 @@
             container.style.paddingTop = `${headerHeight + HEADER_GAP}px`;
         }
     };
-
+    
     // ----------------------------------------------------
-    // 필터 토글 기능 함수
+    // 💡 필터 섹션 전체 토글 함수 (검색창 + NPC 필터)
     // ----------------------------------------------------
-    const toggleFilterVisibility = () => {
-        const npcContainer = document.getElementById('npc-filter-container');
-        const button = document.getElementById('filter-toggle-button');
+    const toggleFilterSection = () => {
+        const filterControls = document.getElementById('filter-controls');
+        const button = document.getElementById('main-filter-toggle-button');
         
-        // 'display: none'인지 확인 (CSS의 'flex' 상태와 비교)
-        if (npcContainer.style.display === 'none') {
-            npcContainer.style.display = 'flex';
-            button.textContent = 'NPC 필터 숨기기';
+        // 현재 표시 상태를 확인합니다.
+        const isHidden = filterControls.style.display === 'none';
+
+        if (isHidden) {
+            filterControls.style.display = 'block'; 
+            button.textContent = '검색 및 필터 숨기기';
         } else {
-            npcContainer.style.display = 'none';
-            button.textContent = 'NPC 필터 보기';
+            filterControls.style.display = 'none';
+            button.textContent = '검색 및 필터 보기';
         }
         
         // 헤더 높이가 변경되었으므로 패딩을 다시 조정합니다.
         adjustContainerPadding();
     };
+
 
     // ----------------------------------------------------
     // 필터링 및 검색 기능 함수
@@ -570,9 +567,11 @@
         let html = '';
         
         uniqueNpcs.forEach((npc, index) => {
-            const filterId = `npc-filter-${npc.replace(/[^a-zA-Z0-9]/g, '_')}`; 
+            // 필터 ID는 고유해야 하므로 특수문자를 제거한 이름을 사용합니다.
+            const filterId = `npc-filter-${npc.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9가-힣_]/g, '')}`; 
             const isChecked = index === 0 ? 'checked' : ''; // 'All'을 기본 선택
             
+            // ⭐ 수정 완료: 라디오 버튼의 value는 퀘스트 데이터의 NPC 이름(원본)과 정확히 일치해야 합니다.
             html += `<div class="npc-filter-item">
                 <input type="radio" id="${filterId}" name="npc-filter-group" value="${npc}" ${isChecked} onchange="applyFilters()">
                 <label for="${filterId}">${npc}</label>
@@ -584,16 +583,21 @@
 
     const applyFilters = () => {
         const searchTerm = document.getElementById('quest-search').value.toLowerCase().trim();
-        const selectedNpc = document.querySelector('input[name="npc-filter-group"]:checked').value;
+        const selectedNpcEl = document.querySelector('input[name="npc-filter-group"]:checked');
+        
+        // ⭐ 수정 완료: 선택된 NPC의 value를 정확하게 가져옵니다.
+        const selectedNpc = selectedNpcEl ? selectedNpcEl.value : 'All';
 
         const npcSections = document.querySelectorAll('.npc-section');
 
         npcSections.forEach(section => {
+            // 섹션의 data-npc-name 속성 값과 선택된 NPC 이름이 일치하는지 확인합니다.
             const npcName = section.dataset.npcName;
             let npcSectionHasVisibleQuest = false;
 
             // 1. NPC 필터 확인
-            const isNpcVisible = selectedNpc === 'All' || npcName === selectedNpc;
+            // npcName (데이터)와 selectedNpc (필터 value)를 직접 비교합니다.
+            const isNpcVisible = selectedNpc === 'All' || npcName === selectedNpc; 
 
             // 해당 NPC 섹션 내의 모든 퀘스트 아이템을 가져옴
             const questItems = section.querySelectorAll('.quest-item');
@@ -602,7 +606,7 @@
                 const questName = item.dataset.questName.toLowerCase();
                 const objectivesText = item.dataset.objectivesText.toLowerCase();
 
-                // 2. 검색어 확인 (퀘스트 이름 또는 목표 텍스트에 포함되는지 확인)
+                // 2. 검색어 확인 
                 const isSearchMatch = searchTerm === '' || 
                                       questName.includes(searchTerm) ||
                                       objectivesText.includes(searchTerm);
@@ -624,7 +628,6 @@
             }
         });
         
-        // 필터 변경 시 헤더 높이가 미세하게 달라질 수 있으므로 다시 조정
         adjustContainerPadding();
     };
     
@@ -796,7 +799,7 @@
     window.updateProgress = updateProgress;
     window.applyFilters = applyFilters;
     window.adjustContainerPadding = adjustContainerPadding; 
-    window.toggleFilterVisibility = toggleFilterVisibility; 
+    window.toggleFilterSection = toggleFilterSection; 
 
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
