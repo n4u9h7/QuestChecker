@@ -67,7 +67,7 @@
             border: 1px solid var(--border-tan);
         }
 
-        /* ✨ 수정: 검색창과 토글 버튼 컨테이너 */
+        /* 검색창과 토글 버튼 컨테이너 */
         .search-and-toggle-container {
             display: flex;
             gap: 10px;
@@ -89,7 +89,7 @@
             border-color: var(--point-blue);
         }
 
-        /* ✨ 수정: 토글 버튼 스타일 */
+        /* 토글 버튼 스타일 */
         #filter-toggle-button {
             flex-shrink: 0;
             padding: 10px 15px;
@@ -106,13 +106,24 @@
             background-color: #388e8b;
         }
 
+        /* NPC 필터 컨테이너 (한 줄 스크롤 적용) */
         #npc-filter-container {
-            /* JS에서 토글할 수 있도록 기본은 flex로 설정 */
             display: flex; 
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* 버튼이 한 줄로 나오게 강제 */
+            overflow-x: auto; /* 가로 스크롤 가능하도록 설정 */
             gap: 10px;
             padding-top: 5px;
+            padding-bottom: 5px; /* 스크롤바 공간 확보 */
         }
+        /* 스크롤바 숨김 (선택 사항: iOS 스타일 유지) */
+        #npc-filter-container::-webkit-scrollbar {
+            display: none;
+        }
+        #npc-filter-container {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
 
         .npc-filter-item input[type="radio"] {
             display: none; /* 기본 라디오 버튼 숨기기 */
@@ -131,6 +142,7 @@
             font-size: 0.9rem;
             color: var(--text-main);
             white-space: nowrap; /* 필터 라벨이 줄바꿈되지 않도록 */
+            flex-shrink: 0; /* 버튼이 내용보다 작게 줄어들지 않도록 */
         }
 
         .npc-filter-item input[type="radio"]:checked + label {
@@ -155,6 +167,32 @@
             #filter-controls {
                 padding: 10px;
             }
+            
+            /* ✨ 최종 수정: 타이틀 완전히 숨기기 */
+            h1 {
+                display: none; 
+            }
+
+            /* 타이틀이 사라졌기 때문에 h2의 마진을 조정하여 공백을 줄일 수 있음 (선택 사항) */
+            h2 {
+                margin-top: 10px;
+            }
+
+            /* 검색창과 토글 버튼 세로로 쌓기 */
+            .search-and-toggle-container {
+                flex-direction: column; /* 세로로 배치 */
+            }
+            #quest-search {
+                width: 100%; /* 검색창 너비 100% */
+                flex-grow: 1;
+            }
+            /* 모바일에서 버튼 크기 조정 */
+            #filter-toggle-button {
+                width: 100%; /* 버튼 너비 100% */
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+
             #npc-filter-container {
                 gap: 5px; /* 필터 간격 줄이기 */
             }
@@ -162,16 +200,10 @@
                 padding: 6px 10px; /* 패딩 줄이기 */
                 font-size: 0.8rem; /* 폰트 사이즈 줄이기 */
             }
-            
-            /* 모바일에서 버튼 크기 조정 */
-            #filter-toggle-button {
-                padding: 8px 10px;
-                font-size: 0.8rem;
-            }
 
             /* 퀘스트 이름이 길 때 레이아웃 깨짐 방지: 폰트 축소 */
             .quest-header .quest-name-link { 
-                /* ✨ 수정: 모바일 환경에서도 유동적인 폰트 크기 적용 */
+                /* 모바일 환경에서도 유동적인 폰트 크기 적용 */
                 font-size: clamp(0.95rem, 4vw, 1rem); 
             }
             .quest-header > div > span {
@@ -207,6 +239,10 @@
             margin-top: 0; 
             font-size: 1.8rem;
             letter-spacing: 1px;
+            /* 데스크톱: 한 줄로 표시 */
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         h2 { 
@@ -277,13 +313,13 @@
             align-items: center;
             color: var(--point-pink); 
             font-family: var(--font-header);
-            /* ✨ 수정: clamp()를 사용하여 화면 크기에 따라 폰트 크기 유동적으로 조절 */
+            /* clamp()를 사용하여 화면 크기에 따라 폰트 크기 유동적으로 조절 */
             font-size: clamp(1.1rem, 1.3vw, 1.3rem); 
             flex-grow: 1;
             margin-right: 15px; 
         }
 
-        /* ✨ 수정: 게이지 컨테이너 (레이아웃 깨짐 방지 유지) */
+        /* 게이지 컨테이너 (레이아웃 깨짐 방지 유지) */
         .quest-header .progress-container {
             display: flex;
             align-items: center;
@@ -315,7 +351,6 @@
 
         .objective-list { list-style: none; padding: 0; margin-top: 10px; }
         .objective-list li { 
-            /* ✨ 수정: 수직 패딩을 8px에서 5px로 줄여 항목 간격을 좁힘 */
             padding: 5px 0; 
             border-top: 1px dashed #eee; 
             display: flex; 
@@ -494,7 +529,7 @@
     let questProgress = loadProgress();
 
     // ----------------------------------------------------
-    // ✨ 헤더 높이 조정 함수 (공백 조정)
+    // 헤더 높이 조정 함수 (공백 조정)
     // ----------------------------------------------------
     const adjustContainerPadding = () => {
         const fixedHeader = document.getElementById('fixed-summary-wrapper');
@@ -508,7 +543,7 @@
     };
 
     // ----------------------------------------------------
-    // ✨ 필터 토글 기능 함수
+    // 필터 토글 기능 함수
     // ----------------------------------------------------
     const toggleFilterVisibility = () => {
         const npcContainer = document.getElementById('npc-filter-container');
@@ -528,7 +563,7 @@
     };
 
     // ----------------------------------------------------
-    // ✨ 필터링 및 검색 기능 함수
+    // 필터링 및 검색 기능 함수
     // ----------------------------------------------------
     const renderNpcFilters = () => {
         const container = document.getElementById('npc-filter-container');
@@ -594,7 +629,7 @@
     };
     
     // ----------------------------------------------------
-    // ✨ 진행률 업데이트 함수
+    // 진행률 업데이트 함수
     // ----------------------------------------------------
     const updateProgress = () => {
         let totalAllObjectives = 0;
