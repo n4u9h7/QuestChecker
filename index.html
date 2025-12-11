@@ -412,6 +412,7 @@
 
 <script>
     const STORAGE_KEY = 'ark_raiders_quest_progress_v3'; 
+    const FILTER_STATE_KEY = 'ark_raiders_filter_state_v1'; // ⭐ 새 필터 상태 저장 키
     const HEADER_GAP = 30; 
 
     // 퀘스트 데이터 (원본 유지)
@@ -501,7 +502,9 @@
         return a.localeCompare(b);
     });
 
-    // 체크 상태를 로드하고 저장하는 함수 (로컬 스토리지 사용)
+    // ----------------------------------------------------
+    // 로컬 스토리지 로드/저장 (퀘스트 진행률)
+    // ----------------------------------------------------
     const loadProgress = () => {
         try {
             const savedData = localStorage.getItem(STORAGE_KEY);
@@ -511,7 +514,6 @@
             return {};
         }
     };
-
     const saveProgress = (progress) => {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
@@ -519,8 +521,45 @@
             console.error("Local storage save failed:", e);
         }
     };
-
     let questProgress = loadProgress();
+
+    // ----------------------------------------------------
+    // 로컬 스토리지 로드/저장 (필터 상태)
+    // ----------------------------------------------------
+    const loadFilterState = () => {
+        try {
+            const savedState = localStorage.getItem(FILTER_STATE_KEY);
+            // 기본 상태: 숨기지 않음, 선택된 NPC 'All', 검색어 없음
+            return savedState ? JSON.parse(savedState) : { 
+                isHidden: false, 
+                selectedNpc: 'All',
+                searchTerm: ''
+            };
+        } catch (e) {
+            console.error("Filter state load failed:", e);
+            return { isHidden: false, selectedNpc: 'All', searchTerm: '' };
+        }
+    };
+    
+    const saveFilterState = () => {
+        try {
+            const filterControls = document.getElementById('filter-controls');
+            // 라디오 버튼이 존재하지 않을 수 있으므로 optional chaining 적용
+            const selectedNpcEl = document.querySelector('input[name="npc-filter-group"]:checked');
+            const searchTerm = document.getElementById('quest-search').value.trim();
+            
+            // 필터 상태 업데이트 및 저장
+            filterState.isHidden = filterControls.style.display === 'none';
+            filterState.selectedNpc = selectedNpcEl ? selectedNpcEl.value : 'All';
+            filterState.searchTerm = searchTerm;
+
+            localStorage.setItem(FILTER_STATE_KEY, JSON.stringify(filterState));
+        } catch (e) {
+            console.error("Filter state save failed:", e);
+        }
+    };
+    let filterState = loadFilterState();
+
 
     // ----------------------------------------------------
     // 헤더 높이 조정 함수 (공백 조정)
@@ -529,9 +568,7 @@
         const fixedHeader = document.getElementById('fixed-summary-wrapper');
         const container = document.querySelector('.container');
         if (fixedHeader && container) {
-            // 고정된 헤더의 현재 높이를 가져옵니다.
             const headerHeight = fixedHeader.offsetHeight;
-            // container의 padding-top에 HEADER_GAP을 더해 적용합니다.
             container.style.paddingTop = `${headerHeight + HEADER_GAP}px`;
         }
     };
@@ -543,7 +580,6 @@
         const filterControls = document.getElementById('filter-controls');
         const button = document.getElementById('main-filter-toggle-button');
         
-        // 현재 표시 상태를 확인합니다.
         const isHidden = filterControls.style.display === 'none';
 
         if (isHidden) {
@@ -554,10 +590,27 @@
             button.textContent = '검색 및 필터 보기';
         }
         
-        // 헤더 높이가 변경되었으므로 패딩을 다시 조정합니다.
+        // ⭐ 상태 저장
+        saveFilterState(); 
+        
         adjustContainerPadding();
     };
 
+    // ----------------------------------------------------
+    // ⭐ 필터 토글 상태 초기화 함수
+    // ----------------------------------------------------
+    const initializeFilterSection = () => {
+        const filterControls = document.getElementById('filter-controls');
+        const button = document.getElementById('main-filter-toggle-button');
+
+        if (filterState.isHidden) {
+            filterControls.style.display = 'none';
+            button.textContent = '검색 및 필터 보기';
+        } else {
+            filterControls.style.display = 'block';
+            button.textContent = '검색 및 필터 숨기기';
+        }
+    };
 
     // ----------------------------------------------------
     // 필터링 및 검색 기능 함수
@@ -566,12 +619,14 @@
         const container = document.getElementById('npc-filter-container');
         let html = '';
         
-        uniqueNpcs.forEach((npc, index) => {
-            // 필터 ID는 고유해야 하므로 특수문자를 제거한 이름을 사용합니다.
+        // ⭐ 저장된 상태에서 선택된 NPC를 가져옴
+        const savedNpc = filterState.selectedNpc; 
+        
+        uniqueNpcs.forEach((npc) => {
             const filterId = `npc-filter-${npc.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9가-힣_]/g, '')}`; 
-            const isChecked = index === 0 ? 'checked' : ''; // 'All'을 기본 선택
+            // ⭐ 저장된 NPC와 현재 NPC가 일치하면 'checked'
+            const isChecked = npc === savedNpc ? 'checked' : ''; 
             
-            // ⭐ 수정 완료: 라디오 버튼의 value는 퀘스트 데이터의 NPC 이름(원본)과 정확히 일치해야 합니다.
             html += `<div class="npc-filter-item">
                 <input type="radio" id="${filterId}" name="npc-filter-group" value="${npc}" ${isChecked} onchange="applyFilters()">
                 <label for="${filterId}">${npc}</label>
@@ -585,18 +640,15 @@
         const searchTerm = document.getElementById('quest-search').value.toLowerCase().trim();
         const selectedNpcEl = document.querySelector('input[name="npc-filter-group"]:checked');
         
-        // ⭐ 수정 완료: 선택된 NPC의 value를 정확하게 가져옵니다.
         const selectedNpc = selectedNpcEl ? selectedNpcEl.value : 'All';
 
         const npcSections = document.querySelectorAll('.npc-section');
 
         npcSections.forEach(section => {
-            // 섹션의 data-npc-name 속성 값과 선택된 NPC 이름이 일치하는지 확인합니다.
             const npcName = section.dataset.npcName;
             let npcSectionHasVisibleQuest = false;
 
             // 1. NPC 필터 확인
-            // npcName (데이터)와 selectedNpc (필터 value)를 직접 비교합니다.
             const isNpcVisible = selectedNpc === 'All' || npcName === selectedNpc; 
 
             // 해당 NPC 섹션 내의 모든 퀘스트 아이템을 가져옴
@@ -628,11 +680,14 @@
             }
         });
         
+        // ⭐ 필터 적용 후 상태 저장
+        saveFilterState();
+
         adjustContainerPadding();
     };
     
     // ----------------------------------------------------
-    // 진행률 업데이트 함수
+    // 진행률 업데이트 함수 (동일)
     // ----------------------------------------------------
     const updateProgress = () => {
         let totalAllObjectives = 0;
@@ -731,7 +786,7 @@
     };
 
     // ----------------------------------------------------
-    // 체크리스트를 HTML로 렌더링하는 함수 (data 속성 포함)
+    // 체크리스트를 HTML로 렌더링하는 함수 (동일)
     // ----------------------------------------------------
     const renderChecklists = (data = groupedData) => {
         const container = document.getElementById('checklist-container');
@@ -803,13 +858,23 @@
 
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. 전체 목록을 렌더링
+        // 1. 퀘스트 목록 렌더링 (진행 상태 반영)
         renderChecklists(groupedData);
-        // 2. NPC 필터 버튼을 렌더링
+        
+        // ⭐ 2. 검색창에 저장된 검색어 설정
+        const searchInput = document.getElementById('quest-search');
+        searchInput.value = filterState.searchTerm;
+        
+        // ⭐ 3. NPC 필터 버튼 렌더링 (저장된 NPC 선택 반영)
         renderNpcFilters();
-        // 3. 필터 적용 (초기에는 'All'이 선택되어 모든 것이 표시됨)
+        
+        // ⭐ 4. 필터 토글 상태 초기화
+        initializeFilterSection();
+        
+        // 5. 필터 적용 (저장된 검색어, 선택된 NPC, 토글 상태를 반영)
         applyFilters(); 
-        // 4. 고정 헤더 높이에 맞춰 콘텐츠 패딩 조정
+        
+        // 6. 고정 헤더 높이에 맞춰 콘텐츠 패딩 조정
         adjustContainerPadding();
     });
     
